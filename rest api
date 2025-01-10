@@ -1,0 +1,59 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+public class WeatherApiClient {
+    public static void main(String[] args) {
+        try {
+            // Replace with your OpenWeatherMap API Key
+            String apiKey = "fbc25527a2e4eedda1e72468e12be008";
+            String city = "London";
+            String apiUrl ="https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API key} ;
+        
+            // Create a URL object
+            URL url = new URL(apiUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            // Set request method to GET
+            connection.setRequestMethod("GET");
+
+            // Check the response code
+            int responseCode = connection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                // Read the response
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String line;
+
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+                reader.close();
+
+                // Parse JSON response
+                JsonObject jsonResponse = JsonParser.parseString(response.toString()).getAsJsonObject();
+                String weatherDescription = jsonResponse.getAsJsonArray("weather")
+                        .get(0).getAsJsonObject().get("description").getAsString();
+                double temperature = jsonResponse.getAsJsonObject("main").get("temp").getAsDouble();
+                double feelsLike = jsonResponse.getAsJsonObject("main").get("feels_like").getAsDouble();
+                String cityName = jsonResponse.get("name").getAsString();
+
+                // Display data in structured format
+                System.out.println("Weather Data for " + cityName + ":");
+                System.out.println("Temperature: " + temperature + "°C");
+                System.out.println("Feels Like: " + feelsLike + "°C");
+                System.out.println("Description: " + weatherDescription);
+            } else {
+                System.out.println("Error: Unable to fetch weather data. HTTP Response Code: " + responseCode);
+            }
+
+            connection.disconnect();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
